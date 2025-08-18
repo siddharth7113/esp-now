@@ -19,6 +19,7 @@
 #include <sys/param.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include "driver/gpio.h" 
 
 #include "esp_log.h"
 #include "esp_console.h"
