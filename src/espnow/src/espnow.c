@@ -401,15 +401,21 @@ EXIT:
 }
 
 /**< callback function of sending ESPNOW data */
-void espnow_send_cb(const uint8_t *addr, esp_now_send_status_t status)
+// void espnow_send_cb(const uint8_t *addr, esp_now_send_status_t status)
+/**< callback function of sending ESPNOW data */
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 0)
+static void espnow_send_cb(const esp_now_send_info_t *tx_info,
+                           esp_now_send_status_t status)
 {
     if (g_buffered_num) {
-        g_buffered_num --;
+        g_buffered_num--;
     }
+
+    const uint8_t *addr = tx_info ? tx_info->dest_addr : NULL;
 
     if (!addr || !g_event_group) {
         ESP_LOGW(TAG, "Send cb args error, addr is NULL");
-        return ;
+        return;
     }
 
     if (status == ESP_NOW_SEND_SUCCESS) {
@@ -418,6 +424,26 @@ void espnow_send_cb(const uint8_t *addr, esp_now_send_status_t status)
         xEventGroupSetBits(g_event_group, SEND_CB_FAIL);
     }
 }
+#else
+static void espnow_send_cb(const uint8_t *addr, esp_now_send_status_t status)
+{
+    if (g_buffered_num) {
+        g_buffered_num--;
+    }
+
+    if (!addr || !g_event_group) {
+        ESP_LOGW(TAG, "Send cb args error, addr is NULL");
+        return;
+    }
+
+    if (status == ESP_NOW_SEND_SUCCESS) {
+        xEventGroupSetBits(g_event_group, SEND_CB_OK);
+    } else {
+        xEventGroupSetBits(g_event_group, SEND_CB_FAIL);
+    }
+}
+#endif
+
 
 esp_err_t espnow_add_peer(const espnow_addr_t addr, const uint8_t *lmk)
 {
