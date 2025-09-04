@@ -33,12 +33,18 @@
  * In ESP-IDF 6.x, esp_now_send_info_t renamed `dest_addr` -> `des_addr`.
  * Map both with a single macro so the rest of the code stays the same.
  */
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 0)
-  #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
-    #define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->des_addr)   /* IDF 6.x */
-  #else
-    #define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->dest_addr)  /* IDF 5.4.x */
-  #endif
+#include "esp_idf_version.h"  // ensure version macros are available
+
+/* Normalize field name across IDF versions:
+   - IDF 6.x uses 'des_addr'
+   - Older IDF uses 'dest_addr'
+*/
+#ifndef ESPNOW_TX_INFO_ADDR
+#  if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+#    define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->des_addr)
+#  else
+#    define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->dest_addr)
+#  endif
 #endif
 /* ===== end CHANGE 1 ===== */
 
