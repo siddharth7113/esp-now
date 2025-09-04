@@ -202,7 +202,7 @@ void espnow_recv_cb(const uint8_t *addr, const uint8_t *data, int size)
     wifi_pkt_rx_ctrl_t *rx_ctrl = NULL;
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 1)
-    uint8_t * addr = recv_info->src_addr;
+    const uint8_t *addr = recv_info->src_addr;   // minimal change: const-correctness
     rx_ctrl = recv_info->rx_ctrl;
 #else
     wifi_promiscuous_pkt_t *promiscuous_pkt = (wifi_promiscuous_pkt_t *)(data - sizeof(wifi_pkt_rx_ctrl_t) - sizeof(espnow_frame_format_t));
@@ -430,7 +430,7 @@ static void espnow_send_cb(const esp_now_send_info_t *tx_info,
         g_buffered_num--;
     }
 
-    const uint8_t *addr = tx_info ? tx_info->dest_addr : NULL;
+    const uint8_t *addr = tx_info ? ESPNOW_TX_INFO_ADDR(tx_info) : NULL;
 
     if (!addr || !g_event_group) {
         ESP_LOGW(TAG, "Send cb args error, addr is NULL");
@@ -801,6 +801,10 @@ esp_err_t espnow_set_group(const uint8_t addrs_list[][ESPNOW_ADDR_LEN], size_t a
         }
     }
 
+    group_info->type = type;
+    memcpy(group_info->group_id, group_id, ESPNOW_ADDR_LEN);
+
+    for (int i = 0; addrs_num > 0;
     group_info->type = type;
     memcpy(group_info->group_id, group_id, ESPNOW_ADDR_LEN);
 
