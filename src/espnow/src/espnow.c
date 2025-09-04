@@ -29,6 +29,19 @@
 
 #include "espnow_security.h"
 
+/* ===== CHANGE 1: add a small compatibility macro for the address field
+ * In ESP-IDF 6.x, esp_now_send_info_t renamed `dest_addr` -> `des_addr`.
+ * Map both with a single macro so the rest of the code stays the same.
+ */
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 0)
+  #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    #define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->des_addr)   /* IDF 6.x */
+  #else
+    #define ESPNOW_TX_INFO_ADDR(tx)  ((tx)->dest_addr)  /* IDF 5.4.x */
+  #endif
+#endif
+/* ===== end CHANGE 1 ===== */
+
 #define SEND_CB_OK                      BIT0
 #define SEND_CB_FAIL                    BIT1
 
